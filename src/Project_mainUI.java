@@ -77,15 +77,15 @@ public class Project_mainUI
             /* Print the Puzzle */
             else if (userCommand.equalsIgnoreCase(addFileAttributes))
             {
-                System.out.println("**********PUZZLE**********");
+                System.out.println("**********Family Tree**********");
                 System.out.println(game.print());
-                System.out.println("**********PUZZLE**********");
+                System.out.println("**********Family Tree**********");
 
             }
 
             else if (userCommand.equalsIgnoreCase("quit"))
             {
-                System.out.println("Quiting the game");
+                System.out.println("Bye Now...");
             }
 
             else

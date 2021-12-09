@@ -1,5 +1,6 @@
 use benny;
 
+
 -- ***CREATE STATEMENTS*** --
 create table If not exists people(person_id int not null auto_increment primary key, 
 person_name nvarchar (100) not null);
@@ -59,7 +60,3 @@ foreign key (media_id) references media_archive(media_id),
 foreign key (person_id) references people(person_id));
 
 
-drop table media_attributes;
-
-
--- drop table person;

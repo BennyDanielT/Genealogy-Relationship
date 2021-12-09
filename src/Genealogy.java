@@ -20,26 +20,65 @@ public class Genealogy
                 Class.forName("com.mysql.jdbc.Driver");
                 con= DriverManager.getConnection("jdbc:mysql://db.cs.dal.ca:3306","benny","B00899629");
                 System.out.println("Connection established with " + schema + " successfully");
+
                 stmt=con.createStatement();
                 stmt.execute ("use "+schema+";");
-                resultSet=stmt.executeQuery("select * from orders " +
-                        "where orderNumber=" + order_number);
-                resultSet=stmt.executeQuery("insert into people values(person_id,person_name)" + " values(?,?)");
-                while(resultSet.next())
-                {
-                    System.out.println(resultSet.getString(1));
+
+                String query="insert into people(person_id,person_name)" + " values(?,?)";
+                PreparedStatement prepStatement = con.prepareStatement(query);
+                prepStatement.setString(1,null);
+                prepStatement.setString(2, name);
+                prepStatement.execute();
+
+                int insertKey = 0;
+
+                resultSet = prepStatement.getGeneratedKeys();
+
+                if (resultSet.next()) {
+                    insertKey = resultSet.getInt(1);
                 }
-                con.close();
-                stmt.close();
-                resultSet.close();
+                else
+                {
 
-            } catch (ClassNotFoundException | SQLException e) {
-                e.printStackTrace();
+                    throw new SQLException("Failed to add the person - " + name + " to the database!");
+                }
+
+                System.out.println("Person - " + name " has been added to the database with Id: " + insertKey);
+
+
+//                con.close();
+//                stmt.close();
+//                prepStatement.close();
+
             }
+            finally
+            {
 
+                if (resultSet != null && stmt != null)
+                {
+                    try {
+                        resultSet.close();
+                        stmt.close();
+                        con.close();
+                        prepStatement.close();
+                    } catch (ClassNotFoundException | SQLException e)
+                    {
+                        // ignore
+                        e.printStackTrace();
+                    }
+                }
+//            catch (ClassNotFoundException | SQLException e) {
+////                System.out.println("Exception here!");
+//                e.printStackTrace();
+            }
             return person;
         }
         else
             return null; //Throw an Exception later
+    }
+
+    Boolean recordAttributes (PersonIdentity person, Map<String, String> attributes )
+    {
+
     }
 }
