@@ -331,10 +331,94 @@ public class Genealogy
         return false;
     }
 
-//    Boolean recordChild( PersonIdentity parent, PersonIdentity child )
-//    {
-//
-//    }
+    Boolean recordChild( PersonIdentity parent, PersonIdentity child ) throws PersonNotFoundException,ClassNotFoundException,SQLException
+    {
+        Map<Integer,String> people = new HashMap<>();
+        Connection con = null;
+        Statement stmt = null;
+        ResultSet resultSet = null;
+        String schema = "benny";//Schema fileLocation, currently hardcoded. Will be modified later
+        try {
+            int parentId = parent.getId(); //Object to store the id of the parent object passed in the method
+            int childId = child.getId(); //Object to store the id of the parent object passed in the method
+            int relationExists = -1; //Object to store the count of a parent-child relation
+
+            if(parentId==childId) //If the Parent and Child Ids are similar do not record the relationship!
+            {
+                System.out.println("A person can't register themselves as their child!");
+                return false;
+            }
+
+            String parentName= parent.getName(); //Object to store the person's fileLocation
+            String childName= child.getName(); //Object to store the person's fileLocation
+            Class.forName("com.mysql.jdbc.Driver");
+            con = DriverManager.getConnection("jdbc:mysql://db.cs.dal.ca:3306", "benny", "B00899629");
+            System.out.println("Connection established with schema " + schema + " successfully");
+
+            stmt = con.createStatement();
+            stmt.execute("use " + schema + ";");
+
+            String query = "select distinct person_id,person_name from people";//Retrieve all the people in the database
+            PreparedStatement prepStatement = con.prepareStatement(query);
+            resultSet = prepStatement.executeQuery();
+
+            while(resultSet.next())
+            {
+                people.put(resultSet.getInt(1),resultSet.getString(2)); //Store the Ids and names of people in the database in a Map
+            }
+            if (!people.containsKey(parentId) || (people.containsKey(parentId) && !Objects.equals(people.get(parentId), parentName)))//Throw an exception if the parent does not exist
+            {
+                throw new PersonNotFoundException("Parent with Id - " + parentId + " and Name - " + parentName + " cannot be found");
+            }
+            if (!people.containsKey(childId) || (people.containsKey(childId) && !Objects.equals(people.get(childId), childName)))//Throw an exception if the child does not exist
+            {
+                throw new PersonNotFoundException("Child with Id - " + childId + " and Name - " + childName + " cannot be found");
+            }
+
+            String queryRelationExists = "select count(parent_id) from children_information where parent_id=? and child_id=?";
+            prepStatement = con.prepareStatement(queryRelationExists);
+            prepStatement.setInt(1, parentId);
+            prepStatement.setInt(2, childId);
+            resultSet = prepStatement.executeQuery();
+            if (resultSet.next())
+            {
+                relationExists = resultSet.getInt(1); /*Check if the parent-child relationship already exists in the table
+                if it does, Display a message that the relationship already exists ELSE Insert the new parent-child relationship*/
+            }
+            if (relationExists > 0)//Relation already exists in the table, therefore print a message stating the child has been recorded
+            {
+                System.out.println("A parent-child relationship already exists between Parent - " + parentId + " and Child - " + childId);
+                return false;
+            }
+            else //Relationship is new. Therefore, Insert it into the table
+            {
+                String queryInsertRelationship = "insert into children_information values(?,?)";
+                prepStatement = con.prepareStatement(queryInsertRelationship);
+                prepStatement.setInt(1, parentId);
+                prepStatement.setInt(2, childId);
+                prepStatement.execute();
+                System.out.println("A parent-child relationship between person(Parent) - " + parentId + " and person(Child) - " + childId + " has been added to the database");
+            }
+            prepStatement.close();
+
+
+        } catch (ClassNotFoundException e) {
+            System.out.println("Class not found. Please verify that the appropriate .jar files and classes are set up");
+            e.printStackTrace();
+        } catch (SQLException e) {
+            System.out.println("Error while trying to access the database!");
+            e.printStackTrace();
+        }
+        finally {//Close Connection objects
+            if (resultSet != null)
+            {resultSet.close();}
+            if (con != null)
+            {con.close();}
+            if (stmt != null)
+            {stmt.close();}
+        }
+        return true;
+    }
 //
 //    Boolean recordPartnering( PersonIdentity partner1, PersonIdentity partner2 )
 //    {
@@ -440,35 +524,28 @@ public class Genealogy
 
          */
         Genealogy familyTree = new Genealogy();
+        PersonIdentity person0 = new PersonIdentity(1,"Thomas"); //Invalid Person
         PersonIdentity person1 = new PersonIdentity(1,"Daniel"); //Valid Person
-        PersonIdentity person2 = new PersonIdentity(2,"Subash"); //Invalid Person
-        PersonIdentity person3 = new PersonIdentity(3,"Subash"); //valid Person
-        Map<String,String> testAttributes = new HashMap<>();
-        testAttributes.put("Date of Birth","1996-12-28");
-        testAttributes.put("Gender","Male");
-        testAttributes.put("Occupation","Cop");
+        PersonIdentity person2 = new PersonIdentity(2,"Bala"); //Invalid Person
+        PersonIdentity person3 = new PersonIdentity(4,"Bala"); //Valid Person
+        PersonIdentity person4 = new PersonIdentity(5,"Salvius"); //valid Person
+        PersonIdentity person5 = new PersonIdentity(6,"Anthony"); //valid Person
+        PersonIdentity person6 = new PersonIdentity(7,"Benito"); //valid Person
 
-        Map<String,String> testAttributes2 = new HashMap<>();
-        testAttributes2.put("Date of Birth","1996-11-27");
-        testAttributes2.put("Gender","Male");
-        testAttributes2.put("Occupation","CEO");
-
-        Map<String,String> testAttributes3 = new HashMap<>();
-        testAttributes3.put("Occupation","Monk");
-
-        Map<String,String> testAttributes4 = new HashMap<>();
-        testAttributes4.put("","Monk");
         try {
-            boolean check1 = familyTree.recordAttributes(person1,testAttributes);//Test for valid person and attribute
-            System.out.println(" True Check: " + check1);
-//            boolean check2 = familyTree.recordAttributes(person2,testAttributes2);//Invalid person and valid attribute
+//            boolean check1 = familyTree.recordChild(person3,person1);//Test for valid parent and child
+//            System.out.println(" True Check: " + check1);
+//            boolean check4 = familyTree.recordChild(person3,person1);//Attempt to insert an existing relationship
+//            System.out.println(" False Check: " + check4);
+//            boolean check6 = familyTree.recordChild(person3,person6);//Second Child
+//            System.out.println(" True Check: " + check6);
+
+//            boolean check2 = familyTree.recordChild(person2,person1);//Invalid Parent and valid Child
 //            System.out.println(" Invalid Check: " + check2);
-//            boolean check3 = familyTree.recordAttributes(person3,testAttributes2);//Test for valid person 2 and attribute
-//            System.out.println(" True Check: " + check3);
-//            boolean check4 = familyTree.recordAttributes(person3,testAttributes3);//Valid Person and attribute update
-//            System.out.println(" Update Check: " + check4);
-//            boolean check5 = familyTree.recordAttributes(person3,testAttributes4);//Valid person and invalid attribute
-//            System.out.println(" False Check: " + check5);
+//            boolean check0 = familyTree.recordChild(person1,person2);//valid Parent and Invalid Child
+//            System.out.println(" Invalid Check: " + check0);
+            boolean check3 = familyTree.recordChild(person1,person1);//Test for same person as parent and child
+            System.out.println(" False Check: " + check3);
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         } catch (SQLException e) {
