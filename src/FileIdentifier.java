@@ -5,8 +5,8 @@ public class FileIdentifier
 
     public FileIdentifier(String fileLocation)
     {
-        this.fileLocation =fileLocation;
         this.uniqueFileId=-1;
+        this.fileLocation =fileLocation;
     }
 
     public FileIdentifier(int uniqueFileId,String fileLocation)

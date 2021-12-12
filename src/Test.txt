@@ -116,6 +116,18 @@ Genealogy familyTree = new Genealogy();
 //Record Child
 
 //Record partner
+PersonIdentity person0 = new PersonIdentity(1,"Thomas"); //Invalid Person
+        PersonIdentity person00 = new PersonIdentity(2,"Bala"); //Invalid Person
+
+        PersonIdentity person1 = new PersonIdentity(1,"Daniel"); //Valid Person
+        PersonIdentity person4 = new PersonIdentity(4,"Bala"); //Valid Person
+        PersonIdentity person5 = new PersonIdentity(5,"Salvius"); //valid Person
+        PersonIdentity person6 = new PersonIdentity(6,"Anthony"); //valid Person
+        PersonIdentity person7 = new PersonIdentity(7,"Benito"); //valid Person
+        PersonIdentity person8 = new PersonIdentity(8,"Mary"); //valid Person
+        PersonIdentity person9 = new PersonIdentity(9,"Fathima"); //valid Person
+        PersonIdentity person10 = new PersonIdentity(10,"Meghan"); //valid Person
+
 boolean check1 = familyTree.recordPartnering(person0,person00);//#2 Invalid Partners
 //            System.out.println(" Exception Check: " + check1);
 
@@ -155,6 +167,18 @@ boolean check1 = familyTree.recordPartnering(person0,person00);//#2 Invalid Part
 //Record partner
 
 //Record Dissolution
+PersonIdentity person0 = new PersonIdentity(1,"Thomas"); //Invalid Person
+        PersonIdentity person00 = new PersonIdentity(2,"Bala"); //Invalid Person
+
+        PersonIdentity person1 = new PersonIdentity(1,"Daniel"); //Valid Person
+        PersonIdentity person4 = new PersonIdentity(4,"Bala"); //Valid Person
+        PersonIdentity person5 = new PersonIdentity(5,"Salvius"); //valid Person
+        PersonIdentity person6 = new PersonIdentity(6,"Anthony"); //valid Person
+        PersonIdentity person7 = new PersonIdentity(7,"Benito"); //valid Person
+        PersonIdentity person8 = new PersonIdentity(8,"Mary"); //valid Person
+        PersonIdentity person9 = new PersonIdentity(9,"Fathima"); //valid Person
+        PersonIdentity person10 = new PersonIdentity(10,"Meghan"); //valid Person
+
 boolean check1 = familyTree.recordDissolution(person0,person00);//#2 Invalid Partners
 //            System.out.println(" Exception Check: " + check1);
 
