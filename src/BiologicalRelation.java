@@ -1,2 +1,5 @@
-public class BiologicalRelation {
+public class BiologicalRelation
+{
+    int degreeOfCousinship;
+    int levelOfRemoval;
 }
