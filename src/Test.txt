@@ -1,0 +1,195 @@
+//addPerson
+familyTree.addPerson("");
+//addPerson
+
+//Record Attributes
+ /*
+        Test for valid person and attribute
+        Invalid person and valid attribute
+        Valid Person and attribute update
+        Valid person and invalid attribute
+        Invalid person and invalid attribute
+
+         */
+        Genealogy familyTree = new Genealogy();
+        PersonIdentity person1 = new PersonIdentity(1,"Daniel"); //Valid Person
+        PersonIdentity person2 = new PersonIdentity(2,"Subash"); //Invalid Person
+        PersonIdentity person3 = new PersonIdentity(3,"Subash"); //valid Person
+        Map<String,String> testAttributes = new HashMap<>();
+        testAttributes.put("Date of Birth","1996-12-28");
+        testAttributes.put("Gender","Male");
+        testAttributes.put("Occupation","Cop");
+
+        Map<String,String> testAttributes2 = new HashMap<>();
+        testAttributes2.put("Date of Birth","1996-11-27");
+        testAttributes2.put("Gender","Male");
+        testAttributes2.put("Occupation","CEO");
+
+        Map<String,String> testAttributes3 = new HashMap<>();
+        testAttributes3.put("Occupation","Monk");
+
+        Map<String,String> testAttributes4 = new HashMap<>();
+        testAttributes4.put("","Monk");
+        try {
+            boolean check1 = familyTree.recordAttributes(person1,testAttributes);//Test for valid person and attribute
+            System.out.println(" True Check: " + check1);
+            boolean check2 = familyTree.recordAttributes(person2,testAttributes2);//Invalid person and valid attribute
+            System.out.println(" Invalid Check: " + check2);
+            boolean check3 = familyTree.recordAttributes(person3,testAttributes2);//Test for valid person 2 and attribute
+            System.out.println(" True Check: " + check3);
+            boolean check4 = familyTree.recordAttributes(person3,testAttributes3);//Valid Person and attribute update
+            System.out.println(" Update Check: " + check4);
+            boolean check5 = familyTree.recordAttributes(person3,testAttributes4);//Valid person and invalid attribute
+            System.out.println(" False Check: " + check5);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+  //Record Attributes
+
+//Record Reference
+Genealogy familyTree = new Genealogy();
+        PersonIdentity person1 = new PersonIdentity(1,"Daniel");
+        PersonIdentity person2 = new PersonIdentity(1,"Subash");
+        //familyTree.addPerson("");
+        try {
+            boolean check1 = familyTree.recordReference(person1,"Valid Reference Material");
+            System.out.println(" True Check: " + check1);
+            boolean check = familyTree.recordReference(person1,"");
+            System.out.println("False Check: " + check);
+            familyTree.recordReference(person2,"Invalid person");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+//Record Reference
+
+//Record Notes
+Genealogy familyTree = new Genealogy();
+        PersonIdentity person1 = new PersonIdentity(1,"Daniel");
+        PersonIdentity person2 = new PersonIdentity(1,"Subash");
+        try {
+            boolean check1 = familyTree.recordNote(person1,"Valid Note");
+            System.out.println(" True Check: " + check1);
+            boolean check = familyTree.recordNote(person1,"");
+            System.out.println("False Check: " + check);
+            familyTree.recordNote(person2,"Invalid person");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+//Record Notes
+
+//Record Child
+Genealogy familyTree = new Genealogy();
+        PersonIdentity person0 = new PersonIdentity(1,"Thomas"); //Invalid Person
+        PersonIdentity person1 = new PersonIdentity(1,"Daniel"); //Valid Person
+        PersonIdentity person2 = new PersonIdentity(2,"Bala"); //Invalid Person
+        PersonIdentity person3 = new PersonIdentity(4,"Bala"); //Valid Person
+        PersonIdentity person4 = new PersonIdentity(5,"Salvius"); //valid Person
+        PersonIdentity person5 = new PersonIdentity(6,"Anthony"); //valid Person
+        PersonIdentity person6 = new PersonIdentity(7,"Benito"); //valid Person
+
+        try {
+            boolean check1 = familyTree.recordChild(person3,person1);//Test for valid parent and child
+            System.out.println(" True Check: " + check1);
+            boolean check4 = familyTree.recordChild(person3,person1);//Attempt to insert an existing relationship
+            System.out.println(" False Check: " + check4);
+            boolean check6 = familyTree.recordChild(person3,person6);//Second Child
+            System.out.println(" True Check: " + check6);
+
+            boolean check2 = familyTree.recordChild(person2,person1);//Invalid Parent and valid Child
+            System.out.println(" Invalid Check: " + check2);
+            boolean check0 = familyTree.recordChild(person1,person2);//valid Parent and Invalid Child
+            System.out.println(" Invalid Check: " + check0);
+            boolean check3 = familyTree.recordChild(person1,person1);//Test for same person as parent and child
+            System.out.println(" False Check: " + check3);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+//Record Child
+
+//Record partner
+boolean check1 = familyTree.recordPartnering(person0,person00);//#2 Invalid Partners
+//            System.out.println(" Exception Check: " + check1);
+
+//            boolean check2 = familyTree.recordPartnering(person10,person0);//#1 Invalid Partners
+//            System.out.println(" Exception Check: " + check2);
+//
+//            boolean check3 = familyTree.recordPartnering(person4,person8);//Valid partnering relation
+//            System.out.println(" True Check: " + check3);
+//
+//            boolean check3 = familyTree.recordPartnering(person4,person8);//Test for attempt to insert a duplicate relation
+//            boolean check3 = familyTree.recordPartnering(person4,person8);
+//            System.out.println(" Duplicate Exception Check: " + check3);
+//
+            //Test for attempt to record a relation when both have a symmetric Partnering relation defined with other people
+//            boolean check3 = familyTree.recordPartnering(person4,person8);
+//            System.out.println(" False Check: " + check3);
+//            boolean check5 = familyTree.recordPartnering(person6,person9);
+//            System.out.println(" True Check: " + check5);
+//            boolean check6 = familyTree.recordPartnering(person4,person9);
+//            System.out.println(" False Check: " + check6);
+//
+            //Test for attempt to record a relation when any 1 partner has a symmetric Partnering relation defined with another person
+//            boolean check3 = familyTree.recordPartnering(person4,person8);
+//            System.out.println(" True Check: " + check3);
+//            boolean check5 = familyTree.recordPartnering(person4,person10);
+//            System.out.println(" False Check: " + check5);
+//
+//            //Test for attempt to record a relation between the same person (partner1==partner2)
+//            boolean check3 = familyTree.recordPartnering(person1,person1);
+//            System.out.println(" False Check: " + check3);
+//
+//            //Test for attempt to record a duplicate relation by changing the order of the partners
+//            boolean check3 = familyTree.recordPartnering(person4,person8);
+           // boolean check4 = familyTree.recordPartnering(person8,person4);
+           // System.out.println(" Exception Check: " + check4);
+
+//Record partner
+
+//Record Dissolution
+boolean check1 = familyTree.recordDissolution(person0,person00);//#2 Invalid Partners
+//            System.out.println(" Exception Check: " + check1);
+
+//            boolean check2 = familyTree.recordDissolution(person10,person0);//#1 Invalid Partners
+//            System.out.println(" Exception Check: " + check2);
+//
+//            boolean check3 = familyTree.recordDissolution(person4,person8);//Valid partnering relation, can be divorced
+//            System.out.println(" True Check: " + check3);
+//
+//            boolean check3 = familyTree.recordDissolution(person4,person8);//Test for attempt to insert a duplicate relation
+//            boolean check3 = familyTree.recordDissolution(person4,person8);
+//            System.out.println(" Duplicate Exception Check: " + check3);
+
+            //Test for attempt to record a duplicate relation by changing the order of the partners
+//            boolean check3 = familyTree.recordDissolution(person4,person8);
+//            boolean check4 = familyTree.recordDissolution(person8,person4);
+//            System.out.println(" Exception Check: " + check4);
+
+            //Test for attempt to record a relation between the same person (partner1==partner2)
+//            boolean check3 = familyTree.recordDissolution(person1,person1);
+//            System.out.println(" False Check: " + check3);
+//
+//
+//
+            //Test for any other scenario (any one of person OR both the person are married to someone else
+//            boolean check3 = familyTree.recordPartnering(person4,person8);
+//            System.out.println(" False Check: " + check3);
+//            boolean check5 = familyTree.recordPartnering(person6,person9);
+//            System.out.println(" True Check: " + check5);
+//            boolean check6 = familyTree.recordDissolution(person4,person9);
+//            System.out.println(" False Check: " + check6);
+//
+//            boolean check3 = familyTree.recordPartnering(person4,person8);
+//            System.out.println(" True Check: " + check3);
+//            boolean check5 = familyTree.recordDissolution(person4,person10);
+//            System.out.println(" False Check: " + check5);
+
+//Record Dissolution
