@@ -20,7 +20,7 @@ public class FileIdentifier
         return fileLocation;
     }
 
-    public int getUniqueFileId()
+    public int getId()
     {
         return uniqueFileId;
     }
@@ -32,6 +32,6 @@ public class FileIdentifier
             return false;
         if (obj == this)
             return true;
-        return this.uniqueFileId == ((FileIdentifier) obj).getUniqueFileId() && this.fileLocation == ((FileIdentifier) obj).getFileLocation();
+        return this.uniqueFileId == ((FileIdentifier) obj).getId() && this.fileLocation == ((FileIdentifier) obj).getFileLocation();
     }
 }

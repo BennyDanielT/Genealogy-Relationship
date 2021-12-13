@@ -15,6 +15,7 @@ familyTree.addPerson("");
         PersonIdentity person1 = new PersonIdentity(1,"Daniel"); //Valid Person
         PersonIdentity person2 = new PersonIdentity(2,"Subash"); //Invalid Person
         PersonIdentity person3 = new PersonIdentity(3,"Subash"); //valid Person
+
         Map<String,String> testAttributes = new HashMap<>();
         testAttributes.put("Date of Birth","1996-12-28");
         testAttributes.put("Gender","Male");
@@ -217,3 +218,136 @@ boolean check1 = familyTree.recordDissolution(person0,person00);//#2 Invalid Par
 //            System.out.println(" False Check: " + check5);
 
 //Record Dissolution
+
+//Media Archive
+//try {
+            //String nullString=null;
+//            FileIdentifier fileCheck = familyTree.addMediaFile(""); //Test for blanks
+//            System.out.println("Return value: " + "File Id - " + fileCheck.getUniqueFileId() + " Filepath: " + fileCheck.getFileLocation());
+
+//            FileIdentifier fileCheck = familyTree.addMediaFile(nullString); //Test for Nulls
+//            System.out.println("Return value: " + "File Id - " + fileCheck.getUniqueFileId() + " Filepath: " + fileCheck.getFileLocation());
+//
+//            FileIdentifier fileCheck = familyTree.addMediaFile("C:\\Users\\welcome\\Desktop\\Dal Coursework\\CSCI 3901\\Project\\benny\\Documentation\\Halifax2021.jpeg"); //Test for Valid Input 1
+//            System.out.println("Return value: " + "File Id - " + fileCheck.getUniqueFileId() + " Filepath: " + fileCheck.getFileLocation());
+//
+//            FileIdentifier fileCheck = familyTree.addMediaFile("C:\\Images\\Singapore_2021.jpeg"); //Test for Valid Input 2
+//            System.out.println("Return value: " + "File Id - " + fileCheck.getUniqueFileId() + " Filepath: " + fileCheck.getFileLocation());
+//
+//            FileIdentifier fileCheck = familyTree.addMediaFile("C:\\Images\\Singapore_2021.jpeg"); //Test for Duplicate Input
+//            System.out.println("Return value: " + "File Id - " + fileCheck.getUniqueFileId() + " Filepath: " + fileCheck.getFileLocation());
+ } catch (ClassNotFoundException | SQLException e) {
+            e.printStackTrace();
+        }
+
+//media archive
+
+//mediaAttributes
+Genealogy familyTree = new Genealogy();
+        FileIdentifier invalidFile1 = new FileIdentifier(0,"C:\\Users\\welcome\\Desktop\\Dal Coursework\\CSCI 3901\\Project\\benny\\Documentation\\Halifax2021.jpeg");
+        FileIdentifier invalidFile2 = new FileIdentifier(1,"C:\\INVALIDDIRECTORY\\Halifax2021.jpeg");
+        FileIdentifier File1 = new FileIdentifier(1,"C:\\Users\\welcome\\Desktop\\Dal Coursework\\CSCI 3901\\Project\\benny\\Documentation\\Halifax2021.jpeg");
+        FileIdentifier File2 = new FileIdentifier(2,"C:\\Images\\Singapore_2021.jpeg");
+        FileIdentifier File3 = new FileIdentifier(9,"C:\\Images\\India_2021.jpeg");
+        FileIdentifier File4 = new FileIdentifier(10,"C:\\Images\\College_2018.jpeg");
+
+        Map<String,String> invalidTestAttributes1 = new HashMap<>();
+        invalidTestAttributes1.put("date","");
+
+        Map<String,String> invalidTestAttributes2 = new HashMap<>();
+        invalidTestAttributes1.put(null,"Earth");
+
+        Map<String,String> testAttributes = new HashMap<>();
+        testAttributes.put("Date","1996-12-28");
+        testAttributes.put("Location","Earth");
+
+        Map<String,String> testAttributes2 = new HashMap<>();
+        testAttributes2.put("Date","1996-11-27");
+        testAttributes2.put("Location","Milky Way Galaxy");
+
+        Map<String,String> testAttributes3 = new HashMap<>();
+        testAttributes3.put("Date","2009-05-29");
+
+        Map<String,String> testAttributes4 = new HashMap<>();
+        testAttributes4.put("Location","Location Update Check");
+
+        try {
+
+//            boolean check1 = familyTree.recordMediaAttributes(invalidFile1,testAttributes);//Test for Invalid File
+//            System.out.println(" Exception Check: " + check1);
+
+//            boolean check12 = familyTree.recordMediaAttributes(invalidFile2,testAttributes);//Test forInvalid File
+//            System.out.println(" Exception Check: " + check12);
+////
+//            boolean check1 = familyTree.recordMediaAttributes(File1,invalidTestAttributes1);//Test for Invalid Attribute Name (Blanks)
+//            System.out.println(" False Check: " + check1);
+//
+//            boolean check1 = familyTree.recordMediaAttributes(File1,invalidTestAttributes1);//Test2 for Invalid Attribute Name (Null)
+//            System.out.println(" False Check: " + check1);
+//
+//            boolean check1 = familyTree.recordMediaAttributes(File1,testAttributes);//Test for Valid File
+//            System.out.println(" True Check: " + check1);
+//            boolean check2 = familyTree.recordMediaAttributes(File2,testAttributes2);//Test2 for Valid File
+//            System.out.println(" True Check: " + check2);
+//
+//            boolean check4 = familyTree.recordMediaAttributes(File2,testAttributes4);//Test for Valid Person and attribute Update
+//            System.out.println(" Update Check: " + check4);
+
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+//mediaAttributes
+
+//peopleInMedia
+Genealogy familyTree = new Genealogy();
+        FileIdentifier invalidFile1 = new FileIdentifier(0,"C:\\Users\\welcome\\Desktop\\Dal Coursework\\CSCI 3901\\Project\\benny\\Documentation\\Halifax2021.jpeg");
+        FileIdentifier invalidFile2 = new FileIdentifier(1,"C:\\INVALIDDIRECTORY\\Halifax2021.jpeg");
+        FileIdentifier File1 = new FileIdentifier(1,"C:\\Users\\welcome\\Desktop\\Dal Coursework\\CSCI 3901\\Project\\benny\\Documentation\\Halifax2021.jpeg");
+        FileIdentifier File2 = new FileIdentifier(2,"C:\\Images\\Singapore_2021.jpeg");
+
+        PersonIdentity person0 = new PersonIdentity(1,"Thomas"); //Invalid Person
+        PersonIdentity person00 = new PersonIdentity(2,"Bala"); //Invalid Person
+        PersonIdentity person1 = new PersonIdentity(1,"Daniel"); //Valid Person
+        PersonIdentity person2 = new PersonIdentity(2,"Bala"); //Invalid Person
+        PersonIdentity person5 = new PersonIdentity(5,"Salvius"); //valid Person
+        List<PersonIdentity> peopleMedia = new ArrayList<>();
+        Collections.addAll(peopleMedia,person0,person00,person1,person2,person5);
+
+        try {
+
+//            boolean check1 = familyTree.peopleInMedia(invalidFile1,peopleMedia);//Test for Invalid File
+//            System.out.println(" Exception Check: " + check1);
+
+            boolean check1 = familyTree.peopleInMedia(File1,peopleMedia);//Test for Valid File
+            System.out.println(" True Check: " + check1);
+
+            boolean check1 = familyTree.peopleInMedia(File1,peopleMedia);//Test for attempt to insert a duplicate record
+            System.out.println(" True Check: " + check1);
+
+
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+//peopleInMedia
+
+//Tags
+Genealogy familyTree = new Genealogy();
+        PersonIdentity person1 = new PersonIdentity(1,"Daniel");
+        PersonIdentity person2 = new PersonIdentity(1,"Subash");
+        try {
+            boolean check1 = familyTree.recordNote(person1,"Valid Note");
+            System.out.println(" True Check: " + check1);
+            boolean check = familyTree.recordNote(person1,"");
+            System.out.println("False Check: " + check);
+            familyTree.recordNote(person2,"Invalid person");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+//Tags
