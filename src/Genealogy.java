@@ -1612,7 +1612,7 @@ let the user know that the person does not exist and ADD THE OTHER people*/
 
             char[] parameters = new char[people.size() * 2 - 1];
             for (int i = 0; i < parameters.length; i++)
-                parameters[i] = (i % 2 == 1 ? '?' : ','); //Hack to include "?" in odd positions
+                parameters[i] = (i % 2 == 0 ? '?' : ','); //Hack to include "?" in Even positions of the array
             String paramterizedInClause = String.valueOf(parameters);
 
             if(startDate==null || endDate==null) //Since Dates are null return All media files with the given Location
@@ -1722,7 +1722,7 @@ let the user know that the person does not exist and ADD THE OTHER people*/
             PreparedStatement prepStatement1;
             char[] parameters = new char[childrenId.size() * 2 - 1];
             for (int i = 0; i < parameters.length; i++)
-                parameters[i] = (i % 2 == 1 ? '?' : ','); //Hack to include "?" in odd positions
+                parameters[i] = (i % 2 == 0 ? '?' : ','); //Hack to include "?" in Even positions of the array
             String paramterizedInClause = String.valueOf(parameters);
 
             query="WITH files_with_date as\n" +
@@ -1792,7 +1792,10 @@ let the user know that the person does not exist and ADD THE OTHER people*/
         try {
             output = familyTree.findIndividualsMedia(people,null,null);
 
-            System.out.println(String.valueOf(output));
+            for(FileIdentifier f : output)
+            {
+                System.out.println(f.getId() + "   " + f.getFileLocation());
+            }
 //
         } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
