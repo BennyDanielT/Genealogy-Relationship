@@ -1,4 +1,6 @@
 import java.sql.*;
+import java.sql.Date;
+import java.time.LocalDate;
 import java.util.*;
 public class Genealogy
 {
@@ -1425,25 +1427,357 @@ let the user know that the person does not exist and ADD THE OTHER people*/
 
     }
 //
-//    Set<FileIdentifier> findMediaByTag( String tag , String startDate, String endDate)
-//    {
+    Set<FileIdentifier> findMediaByTag( String tag , String startDate, String endDate) throws SQLException
+    {
+        Connection con = null;
+        Statement stmt = null;
+        ResultSet resultSet = null;
+        String query; //Query to be executed for retrieving Files
+        Set<FileIdentifier>mediaByTag = new HashSet<>();
+
+        String schema = "benny";//Schema fileLocation, currently hardcoded. Will be modified later
+        try {
+            Class.forName("com.mysql.jdbc.Driver");
+            con = DriverManager.getConnection("jdbc:mysql://db.cs.dal.ca:3306", "benny", "B00899629");
+            System.out.println("Connection established with schema " + schema + " successfully");
+
+            stmt = con.createStatement();
+            stmt.execute("use " + schema + ";");
+
+            if(tag==null || tag.equalsIgnoreCase("")) //If tag is null or an empty no file can be retrieved
+            {
+                System.out.println("Tags with Null or Blank values are not recorded in the system therefore searching for these tags will not return any files!");
+            }
+            PreparedStatement prepStatement1;
+
+            if(startDate==null || endDate==null) //Since Dates are null return All media files with the given Tag
+            {
+                query ="select distinct tag.media_id,media_path from media_archive archive" +
+                        " join media_tag tag on archive.media_id=tag.media_id where tag=?;";
+                prepStatement1 = con.prepareStatement(query);
+                prepStatement1.setString(1, tag);
+            }
+            else //Dates are necessary. Only Media files with given tag and dates in the given range are returned
+            {
+                //Parse the Start and End dates (currently Strings) to Date format
+                LocalDate startDt = LocalDate.parse(startDate);
+                LocalDate endDt = LocalDate.parse(endDate);
+                query="select distinct tag.media_id,media_path from media_archive archive" +
+                        " join media_tag tag on archive.media_id=tag.media_id" +
+                        " join media_attributes a on archive.media_id=a.media_id" +
+                        " where tag=? and attribute_name=?  and cast(attribute_value as Date) between ? and ?;";
+                prepStatement1 = con.prepareStatement(query);
+                prepStatement1.setString(1, tag);
+                prepStatement1.setString(2, "Date");
+                prepStatement1.setDate(3, java.sql.Date.valueOf(startDt));
+                prepStatement1.setDate(4,java.sql.Date.valueOf(endDt));
+            }
+            resultSet = prepStatement1.executeQuery();
+            int fileId;
+            String filePath;
+
+            while(resultSet.next())
+            {
+                fileId=resultSet.getInt(1);
+                filePath=resultSet.getString(2);
+                FileIdentifier newFile = new FileIdentifier(fileId,filePath);
+                mediaByTag.add(newFile); //Add the file to the Set
+            }
+            if(mediaByTag.size()==0)
+                System.out.println("No Media files available for this Tag");
+
+        } catch (ClassNotFoundException e) {
+            System.out.println("Class not found. Please verify that the appropriate .jar files and classes are set up");
+            e.printStackTrace();
+        } catch (SQLException e) {
+            System.out.println("Error while trying to access the database!");
+            e.printStackTrace();
+        }
+        finally {//Close Connection objects
+            if (resultSet != null)
+            {resultSet.close();}
+            if (con != null)
+            {con.close();}
+            if (stmt != null)
+            {stmt.close();}
+        }
+        return mediaByTag;
+    }
 //
-//    }
+    Set<FileIdentifier> findMediaByLocation( String location, String startDate, String endDate) throws SQLException
+    {
+        Connection con = null;
+        Statement stmt = null;
+        ResultSet resultSet = null;
+        String query; //Query to be executed for retrieving Files
+        Set<FileIdentifier>mediaByLocation = new HashSet<>();
+
+        String schema = "benny";//Schema name, currently hardcoded. Will be modified later
+        try {
+            Class.forName("com.mysql.jdbc.Driver");
+            con = DriverManager.getConnection("jdbc:mysql://db.cs.dal.ca:3306", "benny", "B00899629");
+            System.out.println("Connection established with schema " + schema + " successfully");
+
+            stmt = con.createStatement();
+            stmt.execute("use " + schema + ";");
+
+            if(location==null || location.equalsIgnoreCase("")) //If Location is null or an empty no file can be retrieved since we are not storing any file attribute which's null or blank
+            {
+                System.out.println("Locations with Null or Blank values are not recorded in the system therefore searching for these locations will not return any files!");
+            }
+            PreparedStatement prepStatement1;
+
+            if(startDate==null || endDate==null) //Since Dates are null return All media files with the given Location
+            {
+                query ="select distinct a.media_id,media_path from media_archive archive " +
+                        "join media_attributes a on archive.media_id=a.media_id " +
+                        "where attribute_name=? " +
+                        "and attribute_value=?;";
+                prepStatement1 = con.prepareStatement(query);
+                prepStatement1.setString(1, "Location");
+                prepStatement1.setString(2, location);
+            }
+            else //Dates are necessary. Only Media files with given tag and dates in the given range are returned
+            {
+                //Parse the Start and End dates (currently Strings) to Date format
+                LocalDate startDt = LocalDate.parse(startDate);
+                LocalDate endDt = LocalDate.parse(endDate);
+                query="WITH files_location as\n" +
+                        "(select distinct a.media_id,media_path from media_archive archive \n" +
+                        "join media_attributes a on archive.media_id=a.media_id\n" +
+                        "where attribute_name=?\n" +
+                        "and attribute_value=?),\n" +
+                        "files_date as\n" +
+                        "(select distinct a.media_id,media_path from media_archive archive \n" +
+                        "join media_attributes a on archive.media_id=a.media_id\n" +
+                        "where attribute_name=?\n" +
+                        "and cast(attribute_value as Date) between ? and ?)\n" +
+                        "select distinct D.media_id,D.media_path from files_location L join files_date D on L.media_id=D.media_id;";
+                prepStatement1 = con.prepareStatement(query);
+                prepStatement1.setString(1, "Location");
+                prepStatement1.setString(2, location);
+                prepStatement1.setString(3, "Date");
+                prepStatement1.setDate(4, java.sql.Date.valueOf(startDt));
+                prepStatement1.setDate(5,java.sql.Date.valueOf(endDt));
+            }
+            resultSet = prepStatement1.executeQuery();
+            int fileId;
+            String filePath;
+
+            while(resultSet.next())
+            {
+                fileId=resultSet.getInt(1);
+                filePath=resultSet.getString(2);
+                FileIdentifier newFile = new FileIdentifier(fileId,filePath);
+                mediaByLocation.add(newFile); //Add the file to the Set
+            }
+            if(mediaByLocation.size()==0)
+                System.out.println("No Media files available for this Tag");
+
+        } catch (ClassNotFoundException e) {
+            System.out.println("Class not found. Please verify that the appropriate .jar files and classes are set up");
+            e.printStackTrace();
+        } catch (SQLException e) {
+            System.out.println("Error while trying to access the database!");
+            e.printStackTrace();
+        }
+        finally {//Close Connection objects
+            if (resultSet != null)
+            {resultSet.close();}
+            if (con != null)
+            {con.close();}
+            if (stmt != null)
+            {stmt.close();}
+        }
+        return mediaByLocation;
+    }
 //
-//    Set<FileIdentifier> findMediaByLocation( String location, String startDate, String endDate)
-//    {
+    List<FileIdentifier> findIndividualsMedia( Set<PersonIdentity> people, String startDate, String endDate) throws ClassNotFoundException,SQLException {
+        Connection con = null;
+        Statement stmt = null;
+        ResultSet resultSet = null;
+        String query; //Query to be executed for retrieving Files
+        List<FileIdentifier>mediaByPeople = new ArrayList<>();
+
+        String schema = "benny";//Schema name, currently hardcoded. Will be modified later
+        try {
+            Class.forName("com.mysql.jdbc.Driver");
+            con = DriverManager.getConnection("jdbc:mysql://db.cs.dal.ca:3306", "benny", "B00899629");
+            System.out.println("Connection established with schema " + schema + " successfully");
+
+            stmt = con.createStatement();
+            stmt.execute("use " + schema + ";");
+
+            PreparedStatement prepStatement1;
+
+            char[] parameters = new char[people.size() * 2 - 1];
+            for (int i = 0; i < parameters.length; i++)
+                parameters[i] = (i % 2 == 1 ? '?' : ','); //Hack to include "?" in odd positions
+            String paramterizedInClause = String.valueOf(parameters);
+
+            if(startDate==null || endDate==null) //Since Dates are null return All media files with the given Location
+            {
+                query ="select distinct p.media_id,media_path from media_archive archive \n" +
+                        "join people_in_media p on archive.media_id=p.media_id\n" +
+                        "where person_id in (" + paramterizedInClause + ");";
+                prepStatement1 = con.prepareStatement(query);
+                int index=1;
+                for(PersonIdentity person : people)
+                {
+                    prepStatement1.setInt(index, person.getId());
+                    index++;
+                }
+            }
+            else //Dates are necessary. Only Media files with given tag and dates in the given range are returned
+            {
+                //Parse the Start and End dates (currently Strings) to Date format
+                LocalDate startDt = LocalDate.parse(startDate);
+                LocalDate endDt = LocalDate.parse(endDate);
+                //Retrieve Files with people and Dates & Files with People but without dates and Union them (sort by Date and file names)
+                query="WITH files_with_date as\n" +
+                        "(select distinct archive.media_id,media_path,person_id from media_archive archive \n" +
+                        "join people_in_media p on archive.media_id=p.media_id\n" +
+                        "join media_attributes a on archive.media_id=a.media_id\n" +
+                        "where attribute_name=\"Date\"\n" +
+                        "and cast(attribute_value as Date) between ? and ? \n" +
+                        "order by cast(attribute_value as Date) ASC,media_path),\n" +
+                        "files_without_date as\n" +
+                        "(select distinct archive.media_id,media_path,person_id from media_archive archive \n" +
+                        "join people_in_media p on archive.media_id=p.media_id\n" +
+                        "where archive.media_id not in (select distinct media_id from media_attributes where attribute_name=\"Date\")\n" +
+                        "order by media_path)\n" +
+                        "select distinct media_id,media_path,1 as sort_order from files_with_date\n" +
+                        "UNION \n" +
+                        "select distinct media_id,media_path,2 as sort_order from files_without_date where person_id in (" + paramterizedInClause + ") order by sort_order,media_path;";
+                prepStatement1 = con.prepareStatement(query);
+                prepStatement1.setDate(1, java.sql.Date.valueOf(startDt));
+                prepStatement1.setDate(2,java.sql.Date.valueOf(endDt));
+                int index=3;
+                for(PersonIdentity person : people)
+                {
+                    prepStatement1.setInt(index, person.getId());
+                    index++;
+                }
+            }
+            resultSet = prepStatement1.executeQuery();
+            int fileId;
+            String filePath;
+
+            while(resultSet.next())
+            {
+                fileId=resultSet.getInt(1);
+                filePath=resultSet.getString(2);
+                FileIdentifier newFile = new FileIdentifier(fileId,filePath);
+                mediaByPeople.add(newFile); //Add the file to the Set
+            }
+            if(mediaByPeople.size()==0)
+                System.out.println("No Media files available for this Set of people");
+
+        } catch (ClassNotFoundException e) {
+            System.out.println("Class not found. Please verify that the appropriate .jar files and classes are set up");
+            e.printStackTrace();
+        } catch (SQLException e) {
+            System.out.println("Error while trying to access the database!");
+            e.printStackTrace();
+        }
+        finally {//Close Connection objects
+            if (resultSet != null)
+            {resultSet.close();}
+            if (con != null)
+            {con.close();}
+            if (stmt != null)
+            {stmt.close();}
+        }
+        return mediaByPeople;
+
+    }
 //
-//    }
-//
-//    List<FileIdentifier> findIndividualsMedia( Set<PersonIdentity> people, String startDate, String endDate)
-//    {
-//
-//    }
-//
-//    List<FileIdentifier> findBiologicalFamilyMedia(PersonIdentity person)
-//    {
-//
-//    }
+    List<FileIdentifier> findBiologicalFamilyMedia(PersonIdentity person) throws SQLException {
+        Connection con = null;
+        Statement stmt = null;
+        ResultSet resultSet = null;
+        String query; //Query to be executed for retrieving Files
+        List<FileIdentifier>mediaByPeople = new ArrayList<>();
+        List<Integer>childrenId = new ArrayList<>();
+
+        String schema = "benny";//Schema name, currently hardcoded. Will be modified later
+        try {
+            Class.forName("com.mysql.jdbc.Driver");
+            con = DriverManager.getConnection("jdbc:mysql://db.cs.dal.ca:3306", "benny", "B00899629");
+            System.out.println("Connection established with schema " + schema + " successfully");
+
+            stmt = con.createStatement();
+            stmt.execute("use " + schema + ";");
+
+            String queryRetrieveChildren = "select child_id from children_information where parent_id=?;";
+            PreparedStatement prepStatement = con.prepareStatement(queryRetrieveChildren);
+            prepStatement.setInt(1, person.getId());
+            resultSet = prepStatement.executeQuery();
+
+            while(resultSet.next())
+            {
+                childrenId.add(resultSet.getInt(1));
+            }
+
+            PreparedStatement prepStatement1;
+            char[] parameters = new char[childrenId.size() * 2 - 1];
+            for (int i = 0; i < parameters.length; i++)
+                parameters[i] = (i % 2 == 1 ? '?' : ','); //Hack to include "?" in odd positions
+            String paramterizedInClause = String.valueOf(parameters);
+
+            query="WITH files_with_date as\n" +
+                    "(select distinct archive.media_id,media_path,person_id from media_archive archive \n" +
+                    "join people_in_media p on archive.media_id=p.media_id\n" +
+                    "join media_attributes a on archive.media_id=a.media_id\n" +
+                    "where attribute_name=\"Date\"\n" +
+                    "order by cast(attribute_value as Date) ASC,media_path),\n" +
+                    "files_without_date as\n" +
+                    "(select distinct archive.media_id,media_path,person_id from media_archive archive \n" +
+                    "join people_in_media p on archive.media_id=p.media_id\n" +
+                    "where archive.media_id not in (select distinct media_id from media_attributes where attribute_name=\"Date\")\n" +
+                    "order by media_path)\n" +
+                    "select distinct media_id,media_path,1 as sort_order from files_with_date\n" +
+                    "UNION \n" +
+                    "select distinct media_id,media_path,2 as sort_order from files_without_date where person_id in (" + paramterizedInClause + ") order by sort_order,media_path;";
+            prepStatement1 = con.prepareStatement(query);
+            int index=1;
+            for(int i : childrenId)
+            {
+                prepStatement1.setInt(index, i);
+                index++;
+            }
+
+            resultSet = prepStatement1.executeQuery();
+            int fileId;
+            String filePath;
+
+            while(resultSet.next())
+            {
+                fileId=resultSet.getInt(1);
+                filePath=resultSet.getString(2);
+                FileIdentifier newFile = new FileIdentifier(fileId,filePath);
+                mediaByPeople.add(newFile); //Add the file to the Set
+            }
+            if(mediaByPeople.size()==0)
+                System.out.println("No Media files available for this person's children");
+
+        } catch (ClassNotFoundException e) {
+            System.out.println("Class not found. Please verify that the appropriate .jar files and classes are set up");
+            e.printStackTrace();
+        } catch (SQLException e) {
+            System.out.println("Error while trying to access the database!");
+            e.printStackTrace();
+        }
+        finally {//Close Connection objects
+            if (resultSet != null)
+            {resultSet.close();}
+            if (con != null)
+            {con.close();}
+            if (stmt != null)
+            {stmt.close();}
+        }
+        return mediaByPeople;
+    }
 
 
 
@@ -1451,18 +1785,15 @@ let the user know that the person does not exist and ADD THE OTHER people*/
     public static void main(String[] args)
     { //INCLUDE INSERT DATES IN THE DATABASE FOR NOTES AND REFERENCE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         Genealogy familyTree = new Genealogy();
-        FileIdentifier invalidFile2 = new FileIdentifier(1,"C:\\INVALIDDIRECTORY\\Halifax2021.jpeg"); //Invalid File
-        FileIdentifier File1 = new FileIdentifier(1,"C:\\Images\\India_2021.jpeg"); //Valid File
+        PersonIdentity person1 = new PersonIdentity(1,"Daniel"); //Valid Person
+        Set<PersonIdentity> people = new HashSet<>();
+        List<FileIdentifier> output = new ArrayList<>();
+        people.add(person1);
         try {
-            PersonIdentity check1 = familyTree.addPerson("");
-            System.out.println(" Exception Check: " + check1.getId());
+            output = familyTree.findIndividualsMedia(people,null,null);
 
-//            boolean check = familyTree.tagMedia(File1,"");
-//            System.out.println("False Check: " + check);
+            System.out.println(String.valueOf(output));
 //
-            boolean check = familyTree.tagMedia(File1,"Valid Note!!");
-            System.out.println("True Check: " + check);
-
         } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
         }
