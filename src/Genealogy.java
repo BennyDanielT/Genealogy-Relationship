@@ -4,8 +4,6 @@ import java.time.LocalDate;
 import java.util.*;
 public class Genealogy
 {
-    private ArrayList<PersonIdentity> people = new ArrayList<>(); // Array list of People
-    private ArrayList<FileIdentifier> files = new ArrayList<>(); // Array list of Media Files
 
     public PersonIdentity addPerson (String name) throws IllegalArgumentException
     {
@@ -427,7 +425,7 @@ Source: https://docs.oracle.com/javase/7/docs/api/java/sql/Statement.html
                     if(resultSet.getString(3).equals("Marriage"))//If it's a marriage, retrieve the other Partner's ID
                     {
                         int partner2Id = resultSet.getInt(1)==parentId ? resultSet.getInt(2) : resultSet.getInt(1); //Retrieve the Id which's not equivalent to the current Partner's ID
-                        parentsToBeRecorded.add(parentId);//Add the Spouse's ID to the list of parents
+                        parentsToBeRecorded.add(partner2Id);//Add the Spouse's ID to the list of parents
                         System.out.println("Partner with Id - " + partner2Id + " has been identified as a spouse of Parent with Id - " + parentId + ". Therefore a child will be recorded for both the parents!");
                     }
                     // Else, the parent is currently Unmarried. Therefore, do not record the child for any other Person.
@@ -1176,7 +1174,7 @@ let the user know that the person does not exist and ADD THE OTHER people*/
                 if(peopleWithName.size()>0)
                     return peopleWithName;
                 else
-                    System.out.println("No person with the given name exists!");
+                    System.out.println("No person with the given name exists!");//if no people with the given name exist, return an empty object
             }
             catch (ClassNotFoundException e) {
                 System.out.println("Class not found. Please verify that the appropriate .jar files and classes are set up");
@@ -1197,7 +1195,7 @@ let the user know that the person does not exist and ADD THE OTHER people*/
             }
         }
         else
-            System.out.println("Invalid name, person cannot be retrieved!");
+            System.out.println("Invalid name, person cannot be retrieved!");//If an invalid name is entered return null
             return null;
     }
 //
@@ -1205,8 +1203,8 @@ let the user know that the person does not exist and ADD THE OTHER people*/
         Connection con = null;
         Statement stmt = null;
         ResultSet resultSet = null;
-        String schema = "benny";//Schema fileLocation, currently hardcoded. Will be modified later
-        if(name!=null && !name.equalsIgnoreCase("")) //If name is null or an empty string do not retrieve the PersonIdentity Object (Don't bother wasting time and memory!)
+        String schema = "benny";//Schema name, currently hardcoded. Will be modified later
+        if(name!=null && !name.equalsIgnoreCase("")) //If file name is null or an empty string do not retrieve the  Object (Don't bother wasting time and memory!)
         {
             FileIdentifier file;
             try
@@ -1249,7 +1247,7 @@ let the user know that the person does not exist and ADD THE OTHER people*/
             }
         }
         else
-            System.out.println("Invalid path, File cannot be retrieved!");
+            System.out.println("Invalid path, File cannot be retrieved!"); //Filename provided is invalid and wouldn't exist since we aren't storing files with blanks names
             return null;
 
     }
@@ -1258,7 +1256,7 @@ let the user know that the person does not exist and ADD THE OTHER people*/
         Connection con = null;
         Statement stmt = null;
         ResultSet resultSet = null;
-        String schema = "benny";//Schema fileLocation, currently hardcoded. Will be modified later
+        String schema = "benny";//Schema name, currently hardcoded. Will be modified later
         try {
             int exists = -1; //Object to store the count of Ids in the table people_reference
             Class.forName("com.mysql.jdbc.Driver");
@@ -1268,7 +1266,7 @@ let the user know that the person does not exist and ADD THE OTHER people*/
             stmt = con.createStatement();
             stmt.execute("use " + schema + ";");
 
-            String query = "select person_id,person_name from people where person_id=?";
+            String query = "select person_id,person_name from people where person_id=?"; //Retrieve the person's name where the person's Id is identical to the Id of the person passed to the method
             PreparedStatement prepStatement = con.prepareStatement(query);
             prepStatement.setInt(1, id.getId());
             resultSet = prepStatement.executeQuery();
@@ -1305,7 +1303,7 @@ let the user know that the person does not exist and ADD THE OTHER people*/
         Connection con = null;
         Statement stmt = null;
         ResultSet resultSet = null;
-        String schema = "benny";//Schema fileLocation, currently hardcoded. Will be modified later
+        String schema = "benny";//Schema name, currently hardcoded. Will be modified later
         try {
             int exists = -1; //Object to store the count of Ids in the table people_reference
             Class.forName("com.mysql.jdbc.Driver");
@@ -1315,7 +1313,7 @@ let the user know that the person does not exist and ADD THE OTHER people*/
             stmt = con.createStatement();
             stmt.execute("use " + schema + ";");
 
-            String query = "select media_id,media_path from media_archive where media_id=?";
+            String query = "select media_id,media_path from media_archive where media_id=?";//Retrieve Media Path(name) where media_id is identical to the ID of the object passed
             PreparedStatement prepStatement = con.prepareStatement(query);
             prepStatement.setInt(1, fileId.getId());
             resultSet = prepStatement.executeQuery();
@@ -1348,28 +1346,417 @@ let the user know that the person does not exist and ADD THE OTHER people*/
 
     }
 //
-//    BiologicalRelation findRelation( PersonIdentity person1, PesonIdentity person2 )
-//    {
-//
-//    }
-//
-//    Set<PersonIdentity> descendents( PersonIdentity person, Integer generations )
-//    {
-//
-//
-//    }
-//
-//    Set<PersonIdentity> ancestores( PersonIdentity person, Integer generations )
-//    {
-//
-//    }
-//
+    BiologicalRelation findRelation( PersonIdentity person1, PersonIdentity person2 ) throws SQLException
+    {
+        BiologicalRelation relation = new BiologicalRelation();
+        int nearestAncestor=-1; //Temp variable to store the id of the nearest ancestor
+        int level=Integer.MAX_VALUE; //temporary varial to store lowest level value
+        int levelPerson1=Integer.MAX_VALUE;//Level of Person 1 to nearest ancestor
+        int levelPerson2=Integer.MAX_VALUE;//Level of Person 2 to nearest ancestor
+        int cousinship;
+        int removal;
+        //Maps to store the nearest ancestor of each person
+        Map<Integer,Integer> person1NearestAncestor = new HashMap<>();
+        Map<Integer,Integer> person2NearestAncestor = new HashMap<>();
+        //Retrieve nearest ancestors
+        person1NearestAncestor = nearestAncestor(person1);
+        person2NearestAncestor = nearestAncestor(person2);
+        //Add each person in the list of ancestors as one person may turn out to be the nearest ancestor of another
+        person1NearestAncestor.put(person1.getId(),0);
+        person2NearestAncestor.put(person2.getId(),0);
+
+        for(var entryset : person1NearestAncestor.entrySet())
+        {//If the ancestor is a common one and the level is lesser than the previously stored level, store the new ancestor and level as the nearest
+            if(person2NearestAncestor.containsKey(entryset.getKey()) && (entryset.getValue()<level))
+            {
+                nearestAncestor = entryset.getKey();
+                level = entryset.getValue();
+            }
+        }
+        if(nearestAncestor==-1) //if there's no common ancestor, they're not biologically related
+        {
+            System.out.println("Not Biologically Related");
+            return null;
+        }
+        levelPerson1 = person1NearestAncestor.get(nearestAncestor);
+        levelPerson2 = person2NearestAncestor.get(nearestAncestor);
+        if(levelPerson1==Integer.MAX_VALUE && levelPerson2==Integer.MAX_VALUE)
+        {
+            System.out.println("Not Biologically Related");
+            return null;
+        }
+        //Formula for degree of cousinship and level of removal
+        cousinship = (Math.min(levelPerson1,levelPerson2)-1);
+        removal = Math.abs(levelPerson1-levelPerson2);
+        relation.degreeOfCousinship=cousinship;
+        relation.levelOfRemoval=removal;
+        return relation;
+    }
+
+    Map<Integer,Integer> nearestAncestor( PersonIdentity person) throws SQLException //method to determine ALL ancestors of a person (for use in FindRelation)
+    {
+        Map<Integer,String> people = new HashMap<>();
+        Map<Integer,Integer> nearestAncestor = new HashMap<>();
+
+        Connection con = null;
+        Statement stmt = null;
+        ResultSet resultSet = null;
+        String schema = "benny";
+        try {
+            int personId = person.getId(); //Object to store the id of the parent object passed in the method
+            String personName= person.getName(); //Object to store the person's name
+            Map<Integer,PersonIdentity> pcMap = new HashMap<>();
+
+            Class.forName("com.mysql.jdbc.Driver");
+            con = DriverManager.getConnection("jdbc:mysql://db.cs.dal.ca:3306", "benny", "B00899629");
+            System.out.println("Connection established with schema " + schema + " successfully");
+
+            stmt = con.createStatement();
+            stmt.execute("use " + schema + ";");
+
+            String query = "select distinct person_id,person_name from people";//Retrieve all the people in the database
+            PreparedStatement prepStatement = con.prepareStatement(query);
+            resultSet = prepStatement.executeQuery();
+
+            while(resultSet.next())
+            {
+                people.put(resultSet.getInt(1),resultSet.getString(2)); //Store the Ids and names of people in the database in a Map
+            }
+            if (!people.containsKey(personId) || (people.containsKey(personId) && !Objects.equals(people.get(personId), personName)))//Throw an exception if the parent does not exist
+            {
+                throw new PersonNotFoundException("Person with Id - " + personId + " and Name - " + personName + " cannot be found");
+            }
+
+            else //Person exists
+            {
+                //Retrieve parent and children from the database with Parent names
+                String queryLatestEvent = "select parent_id,child_id,person_name from children_information c join people p on c.parent_id=p.person_id;";
+                PreparedStatement prepStatement2 = con.prepareStatement(queryLatestEvent);
+                //Retrieve any row where any partner Id in the Table = Partner 1's ID
+                resultSet = prepStatement2.executeQuery();
+                int parentId;
+                int childId;
+                String name;
+
+                while(resultSet.next()) //Form a Map of Parent and Children and Build the Tree
+                {
+                    parentId=resultSet.getInt(1);
+                    childId=resultSet.getInt(2);
+                    name=resultSet.getString(3);
+                    PersonIdentity newParent = new PersonIdentity(parentId,name);
+
+                    if(pcMap.containsKey(childId)) //If the Map already has a key for this child this means that one of the parents is already Linked!
+                    {
+                        pcMap.get(childId).parent2=newParent;
+                    }
+                    else
+                    {//link the second parent of the child to the child
+                        PersonIdentity newChild = new PersonIdentity(childId);
+                        newChild.parent1 = newParent;
+                        pcMap.put(childId,newChild);
+                    }
+                }
+                if(!pcMap.containsKey(personId)) //if the person is not a child of anyone
+                {
+                    System.out.println("No Ancestor recorded for this person!");
+                    return nearestAncestor;
+                }
+                int currentGen=0;//Variable to store Current generation while traversing the tree
+                if (pcMap.get(personId).parent1 != null)
+                {
+                     nearestAncestor = findNearestAncestor(pcMap.get(personId).parent1, pcMap, nearestAncestor, currentGen+1);
+                }
+                if (pcMap.get(personId).parent2 != null)
+                {
+                    nearestAncestor = findNearestAncestor(pcMap.get(personId).parent2, pcMap, nearestAncestor, currentGen+1);
+                }
+            }
+            prepStatement.close();
+
+        } catch (ClassNotFoundException e) {
+            System.out.println("Class not found. Please verify that the appropriate .jar files and classes are set up");
+            e.printStackTrace();
+        } catch (SQLException e) {
+            System.out.println("Error while trying to access the database!");
+            e.printStackTrace();
+        }
+        finally {//Close Connection objects
+            if (resultSet != null)
+            {resultSet.close();}
+            if (con != null)
+            {con.close();}
+            if (stmt != null)
+            {stmt.close();}
+        }
+        return nearestAncestor;
+    }
+
+    Map<Integer,Integer> findNearestAncestor(PersonIdentity person, Map<Integer,PersonIdentity> pcMap, Map<Integer,Integer> nearestAncestor,int currGen)
+    {
+        if(person!=null)
+        {
+            nearestAncestor.put(person.getId(),currGen);//Add the person to the Map
+
+            if(pcMap.containsKey(person.getId()))
+            {//Traverse recursively (both maternal tree and paternal tree)
+                nearestAncestor = findNearestAncestor(pcMap.get(person.getId()).parent1, pcMap, nearestAncestor, currGen+1);
+                nearestAncestor = findNearestAncestor(pcMap.get(person.getId()).parent2, pcMap, nearestAncestor, currGen+1);
+            }
+        }
+        return nearestAncestor;
+    } //Recursive Method to traverse through a Tree of People and store ALL ancestors along with the generation level from the person in question (for use in FindRelation)
+
+    Set<PersonIdentity> descendents( PersonIdentity person, Integer generations ) throws SQLException {
+        Map<Integer,String> people = new HashMap<>();
+        Set<PersonIdentity> descendants = new HashSet<>();
+
+        Connection con = null;
+        Statement stmt = null;
+        ResultSet resultSet = null;
+        String schema = "benny";
+        try {
+            int personId = person.getId(); //Object to store the id of the parent object passed in the method
+            String personName= person.getName(); //Object to store the person's name
+            Map<Integer,PersonIdentity> pcMap = new HashMap<>();
+
+            Class.forName("com.mysql.jdbc.Driver");
+            con = DriverManager.getConnection("jdbc:mysql://db.cs.dal.ca:3306", "benny", "B00899629");
+            System.out.println("Connection established with schema " + schema + " successfully");
+
+            stmt = con.createStatement();
+            stmt.execute("use " + schema + ";");
+
+            String query = "select distinct person_id,person_name from people";//Retrieve all the people in the database
+            PreparedStatement prepStatement = con.prepareStatement(query);
+            resultSet = prepStatement.executeQuery();
+
+            while(resultSet.next())
+            {
+                people.put(resultSet.getInt(1),resultSet.getString(2)); //Store the Ids and names of people in the database in a Map
+            }
+            if (!people.containsKey(personId) || (people.containsKey(personId) && !Objects.equals(people.get(personId), personName)))//Throw an exception if the parent does not exist
+            {
+                throw new PersonNotFoundException("Person with Id - " + personId + " and Name - " + personName + " cannot be found");
+            }
+            if(generations<=0)
+            {
+                System.out.println("The value for Generations cannot be lesser than or equal to zero!");
+            }
+            else //Person exists
+            {
+                String queryLatestEvent = "select parent_id,child_id,person_name from children_information c join people p on c.child_id=p.person_id;";
+                PreparedStatement prepStatement2 = con.prepareStatement(queryLatestEvent);
+                //Retrieve any row where any partner Id in the Table = Partner 1's ID
+                resultSet = prepStatement2.executeQuery();
+                int parentId;
+                int childId;
+                String name;
+
+                while(resultSet.next()) //Form a Map of Parent and Children and Build the Tree
+                {
+                    parentId=resultSet.getInt(1);
+                    childId=resultSet.getInt(2);
+                    name=resultSet.getString(3);
+                    //PersonIdentity newParent = new PersonIdentity(parentId,name);
+
+                    PersonIdentity newChild = new PersonIdentity(childId,name);
+
+                    if(pcMap.containsKey(parentId)) //If the Map already has a key for this parent this means that one of the children is already Linked!
+                    {
+                        pcMap.get(parentId).children.add(newChild);
+                    }
+                    else
+                    {//Add the child to the person's existing list of children
+                        PersonIdentity newParent = new PersonIdentity(parentId);
+                        newParent.children.add(newChild);
+                        pcMap.put(parentId,newParent);
+                    }
+                }
+
+                if(!pcMap.containsKey(personId)) //if the person is not a parent of anyone
+                {
+                    System.out.println("No Descendants recorded for this person!");
+                    return descendants;
+                }
+
+                int currentGen=0; //variable to store current generation value during traversal
+                for(PersonIdentity child : pcMap.get(personId).children)
+                {
+                    if(currentGen<generations)
+                    {//Find the descendants for each child of the person
+                        descendants = findDescendant(child, pcMap, descendants, currentGen+1,generations);
+                    }
+                }
+            }
+            prepStatement.close();
+
+        } catch (ClassNotFoundException e) {
+            System.out.println("Class not found. Please verify that the appropriate .jar files and classes are set up");
+            e.printStackTrace();
+        } catch (SQLException e) {
+            System.out.println("Error while trying to access the database!");
+            e.printStackTrace();
+        }
+        finally {//Close Connection objects
+            if (resultSet != null)
+            {resultSet.close();}
+            if (con != null)
+            {con.close();}
+            if (stmt != null)
+            {stmt.close();}
+        }
+        return descendants;
+    } //method to retrieve the descendants of a person
+
+    Set<PersonIdentity> findDescendant(PersonIdentity person, Map<Integer,PersonIdentity> pcMap, Set<PersonIdentity> descendants,int currGen, int generations)
+    {
+        if(person!=null)
+        {
+            descendants.add(person);
+            if(pcMap.containsKey(person.getId()) && currGen<generations)
+            {
+                if(currGen<generations)
+                {
+                    for (PersonIdentity child : pcMap.get(person.getId()).children) {
+                        descendants = findDescendant(child, pcMap, descendants, currGen + 1, generations);
+                    }
+                }
+            }
+
+        }
+        return descendants;
+    }//Recursive Method to traverse through a Tree of People and store descendants within a certain generation
+
+    Set<PersonIdentity> ancestores( PersonIdentity person, Integer generations ) throws SQLException
+    {
+        Map<Integer,String> people = new HashMap<>();
+        Set<PersonIdentity> ancestors = new HashSet<>();
+
+        Connection con = null;
+        Statement stmt = null;
+        ResultSet resultSet = null;
+        String schema = "benny";
+        try {
+            int personId = person.getId(); //Object to store the id of the parent object passed in the method
+            String personName= person.getName(); //Object to store the person's name
+            Map<Integer,PersonIdentity> pcMap = new HashMap<>();
+
+            Class.forName("com.mysql.jdbc.Driver");
+            con = DriverManager.getConnection("jdbc:mysql://db.cs.dal.ca:3306", "benny", "B00899629");
+            System.out.println("Connection established with schema " + schema + " successfully");
+
+            stmt = con.createStatement();
+            stmt.execute("use " + schema + ";");
+
+            String query = "select distinct person_id,person_name from people";//Retrieve all the people in the database
+            PreparedStatement prepStatement = con.prepareStatement(query);
+            resultSet = prepStatement.executeQuery();
+
+            while(resultSet.next())
+            {
+                people.put(resultSet.getInt(1),resultSet.getString(2)); //Store the Ids and names of people in the database in a Map
+            }
+            if (!people.containsKey(personId) || (people.containsKey(personId) && !Objects.equals(people.get(personId), personName)))//Throw an exception if the parent does not exist
+            {
+                throw new PersonNotFoundException("Person with Id - " + personId + " and Name - " + personName + " cannot be found");
+            }
+            if(generations<=0)
+            {
+                System.out.println("The value for Generations cannot be lesser than or equal to zero!");
+            }
+            else //Person exists
+            {
+                String queryLatestEvent = "select parent_id,child_id,person_name from children_information c join people p on c.parent_id=p.person_id;";
+                PreparedStatement prepStatement2 = con.prepareStatement(queryLatestEvent);
+                //Retrieve any row where any partner Id in the Table = Partner 1's ID
+                resultSet = prepStatement2.executeQuery();
+                int parentId;
+                int childId;
+                String name;
+
+                while(resultSet.next()) //Form a Map of Parent and Children and Build the Tree
+                {
+                    parentId=resultSet.getInt(1);
+                    childId=resultSet.getInt(2);
+                    name=resultSet.getString(3);
+                    PersonIdentity newParent = new PersonIdentity(parentId,name);
+
+                    if(pcMap.containsKey(childId)) //If the Map already has a key for this child this means that one of the parents is already Linked!
+                    {
+                        pcMap.get(childId).parent2=newParent;
+                    }
+                    else
+                    {//Add the link the second parent with the child
+                        PersonIdentity newChild = new PersonIdentity(childId);
+                        newChild.parent1 = newParent;
+                        pcMap.put(childId,newChild);
+                    }
+                }
+
+                if(!pcMap.containsKey(personId)) //if the person is not a child of anyone
+                {
+                    System.out.println("No Ancestor recorded for this person!");
+                    return ancestors;
+                }
+                int currentGen=0;
+                if (pcMap.get(personId).parent1 != null) {
+                    if(currentGen<generations)
+                    {//Traverse through the ancestors of Parent 1
+                        ancestors = findAncestor(pcMap.get(personId).parent1, pcMap, ancestors, currentGen+1,generations);
+                    }
+                }
+                if (pcMap.get(personId).parent2 != null) {
+
+                    if(currentGen<generations)
+                    {//Traverse through the ancestors of Parent 2
+                        ancestors = findAncestor(pcMap.get(personId).parent2, pcMap, ancestors, currentGen+1,generations);
+                    }
+                }
+            }
+            prepStatement.close();
+
+        } catch (ClassNotFoundException e) {
+            System.out.println("Class not found. Please verify that the appropriate .jar files and classes are set up");
+            e.printStackTrace();
+        } catch (SQLException e) {
+            System.out.println("Error while trying to access the database!");
+            e.printStackTrace();
+        }
+        finally {//Close Connection objects
+            if (resultSet != null)
+            {resultSet.close();}
+            if (con != null)
+            {con.close();}
+            if (stmt != null)
+            {stmt.close();}
+        }
+        return ancestors;
+    }//method to retrieve the ancestors of a person
+
+   static Set<PersonIdentity> findAncestor(PersonIdentity person, Map<Integer,PersonIdentity> pcMap, Set<PersonIdentity> ancestors,int currGen,int generations)
+    {
+        if(person!=null)
+        {
+            ancestors.add(person); //Add the person to the set
+            if(pcMap.containsKey(person.getId()))
+            {
+                if(currGen<generations)
+                {//Traverse Maternal and Paternal tress of the person
+                    ancestors = findAncestor(pcMap.get(person.getId()).parent1, pcMap, ancestors, currGen+1, generations);
+                    ancestors = findAncestor(pcMap.get(person.getId()).parent2, pcMap, ancestors, currGen+1, generations);
+                }
+            }
+
+        }
+        return ancestors;
+    }//Recursive Method to traverse through a Tree of People and store ancestors within a certain generation
+
     List<String> notesAndReferences( PersonIdentity person ) throws SQLException {
         Connection con = null;
         Statement stmt = null;
         ResultSet resultSet = null;
         List<String>notesAndReferences = new ArrayList<>();
-        String schema = "benny";//Schema fileLocation, currently hardcoded. Will be modified later
+        String schema = "benny";
         try {
             int exists = -1; //Object to store the count of Ids in the table people_reference
             Class.forName("com.mysql.jdbc.Driver");
@@ -1392,7 +1779,7 @@ let the user know that the person does not exist and ADD THE OTHER people*/
             {
                 throw new PersonNotFoundException("Person with Id - " + person.getId() + " and Name - " + person.getName() + " cannot be found");
             }
-
+//Select all notes and references in ascending order of date for the given person
             query = "select notes_id as id,person_id,notes as material,note_date from people_notes where person_id=?" +
                     " UNION ALL" +
                     " select reference_id,person_id,reference_material as material,note_date from people_reference where person_id=? order by note_date; ";
@@ -1405,7 +1792,7 @@ let the user know that the person does not exist and ADD THE OTHER people*/
             {
                 notesAndReferences.add(resultSet.getString(3)); //Add the Notes and References to the List and Return It
             }
-            if(notesAndReferences.size()==0)
+            if(notesAndReferences.size()==0) //If there're no notes or references return an empty object
                 System.out.println("No notes and References are available for the person");
 
         } catch (ClassNotFoundException e) {
@@ -1426,14 +1813,14 @@ let the user know that the person does not exist and ADD THE OTHER people*/
         return notesAndReferences;
 
     }
-//
+
     Set<FileIdentifier> findMediaByTag( String tag , String startDate, String endDate) throws SQLException
     {
         Connection con = null;
         Statement stmt = null;
         ResultSet resultSet = null;
         String query; //Query to be executed for retrieving Files
-        Set<FileIdentifier>mediaByTag = new HashSet<>();
+        Set<FileIdentifier>mediaByTag = new HashSet<>(); //Object to store medias which are associated with the given tag
 
         String schema = "benny";//Schema fileLocation, currently hardcoded. Will be modified later
         try {
@@ -1473,10 +1860,10 @@ let the user know that the person does not exist and ADD THE OTHER people*/
                 prepStatement1.setDate(4,java.sql.Date.valueOf(endDt));
             }
             resultSet = prepStatement1.executeQuery();
-            int fileId;
-            String filePath;
+            int fileId; //Temporary object to store the Id of each file
+            String filePath;//Temporary object to store the path (name) of each file
 
-            while(resultSet.next())
+            while(resultSet.next())//Retrieve the IDs and files and create FileIdentifier objects with them
             {
                 fileId=resultSet.getInt(1);
                 filePath=resultSet.getString(2);
@@ -1503,7 +1890,7 @@ let the user know that the person does not exist and ADD THE OTHER people*/
         }
         return mediaByTag;
     }
-//
+
     Set<FileIdentifier> findMediaByLocation( String location, String startDate, String endDate) throws SQLException
     {
         Connection con = null;
@@ -1512,7 +1899,7 @@ let the user know that the person does not exist and ADD THE OTHER people*/
         String query; //Query to be executed for retrieving Files
         Set<FileIdentifier>mediaByLocation = new HashSet<>();
 
-        String schema = "benny";//Schema name, currently hardcoded. Will be modified later
+        String schema = "benny";
         try {
             Class.forName("com.mysql.jdbc.Driver");
             con = DriverManager.getConnection("jdbc:mysql://db.cs.dal.ca:3306", "benny", "B00899629");
@@ -1591,7 +1978,7 @@ let the user know that the person does not exist and ADD THE OTHER people*/
         }
         return mediaByLocation;
     }
-//
+
     List<FileIdentifier> findIndividualsMedia( Set<PersonIdentity> people, String startDate, String endDate) throws ClassNotFoundException,SQLException {
         Connection con = null;
         Statement stmt = null;
@@ -1599,7 +1986,7 @@ let the user know that the person does not exist and ADD THE OTHER people*/
         String query; //Query to be executed for retrieving Files
         List<FileIdentifier>mediaByPeople = new ArrayList<>();
 
-        String schema = "benny";//Schema name, currently hardcoded. Will be modified later
+        String schema = "benny";
         try {
             Class.forName("com.mysql.jdbc.Driver");
             con = DriverManager.getConnection("jdbc:mysql://db.cs.dal.ca:3306", "benny", "B00899629");
@@ -1609,7 +1996,7 @@ let the user know that the person does not exist and ADD THE OTHER people*/
             stmt.execute("use " + schema + ";");
 
             PreparedStatement prepStatement1;
-
+//Solution for dynamically creating parameterized queries depending upon the number of people in the Set passed to the method
             char[] parameters = new char[people.size() * 2 - 1];
             for (int i = 0; i < parameters.length; i++)
                 parameters[i] = (i % 2 == 0 ? '?' : ','); //Hack to include "?" in Even positions of the array
@@ -1663,7 +2050,7 @@ let the user know that the person does not exist and ADD THE OTHER people*/
             int fileId;
             String filePath;
 
-            while(resultSet.next())
+            while(resultSet.next())//Retrieve Fild Ids and Path and store them in FileIdentifier objects
             {
                 fileId=resultSet.getInt(1);
                 filePath=resultSet.getString(2);
@@ -1691,7 +2078,7 @@ let the user know that the person does not exist and ADD THE OTHER people*/
         return mediaByPeople;
 
     }
-//
+
     List<FileIdentifier> findBiologicalFamilyMedia(PersonIdentity person) throws SQLException {
         Connection con = null;
         Statement stmt = null;
@@ -1709,7 +2096,7 @@ let the user know that the person does not exist and ADD THE OTHER people*/
             stmt = con.createStatement();
             stmt.execute("use " + schema + ";");
 
-            String queryRetrieveChildren = "select child_id from children_information where parent_id=?;";
+            String queryRetrieveChildren = "select child_id from children_information where parent_id=?;";//Find the children of this person
             PreparedStatement prepStatement = con.prepareStatement(queryRetrieveChildren);
             prepStatement.setInt(1, person.getId());
             resultSet = prepStatement.executeQuery();
@@ -1718,7 +2105,7 @@ let the user know that the person does not exist and ADD THE OTHER people*/
             {
                 childrenId.add(resultSet.getInt(1));
             }
-
+//Solution for parameterized queires depending on the number of children the person has
             PreparedStatement prepStatement1;
             char[] parameters = new char[childrenId.size() * 2 - 1];
             for (int i = 0; i < parameters.length; i++)
@@ -1779,27 +2166,44 @@ let the user know that the person does not exist and ADD THE OTHER people*/
         return mediaByPeople;
     }
 
-
-
-
-    public static void main(String[] args)
-    { //INCLUDE INSERT DATES IN THE DATABASE FOR NOTES AND REFERENCE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        Genealogy familyTree = new Genealogy();
-        PersonIdentity person1 = new PersonIdentity(1,"Daniel"); //Valid Person
-        Set<PersonIdentity> people = new HashSet<>();
-        List<FileIdentifier> output = new ArrayList<>();
-        people.add(person1);
-        try {
-            output = familyTree.findIndividualsMedia(people,null,null);
-
-            for(FileIdentifier f : output)
-            {
-                System.out.println(f.getId() + "   " + f.getFileLocation());
-            }
+//    //Sample Main Method to Test Methods
+//    public static void main(String[] args)
+//    {
+//        Genealogy familyTree = new Genealogy();
+//        PersonIdentity X = new PersonIdentity(1,"X");
+//        PersonIdentity ADM = new PersonIdentity(2,"ADM");
+//        PersonIdentity XX = new PersonIdentity(3,"XX");
+//        PersonIdentity AO = new PersonIdentity(4,"AO");
+//        PersonIdentity XXX = new PersonIdentity(5,"XXX");
+//        PersonIdentity BDT = new PersonIdentity(6,"BDT");
+//        PersonIdentity AOY = new PersonIdentity(7,"AOY");
+//        PersonIdentity GRVM = new PersonIdentity(8,"GRVM");
+//        PersonIdentity XXXX = new PersonIdentity(9,"XXXX");
+//        PersonIdentity XXXY = new PersonIdentity(10,"XXXY");
+//        PersonIdentity AOYX = new PersonIdentity(11,"AOYX");
+//        PersonIdentity AOYY = new PersonIdentity(12,"AOYY");
+//        PersonIdentity XXXYX = new PersonIdentity(13,"XXXYX");
+//        PersonIdentity XXXYY = new PersonIdentity(14,"XXXYY");
+//        PersonIdentity AOYXX = new PersonIdentity(15,"AOYXX");
+//        PersonIdentity AOYXY = new PersonIdentity(16,"AOYXY");
+//        PersonIdentity AOYYX = new PersonIdentity(17,"AOYYX");
+//        PersonIdentity AOYYY = new PersonIdentity(18,"AOYYY");
 //
-        } catch (ClassNotFoundException | SQLException e) {
-            e.printStackTrace();
-        }
-    }
+//        try {
+//            BiologicalRelation output = new BiologicalRelation();
+//            BiologicalRelation output2 = new BiologicalRelation();
+//            BiologicalRelation output3 = new BiologicalRelation();
+//
+//
+//            System.out.println("------------------------");
+//            output2 = familyTree.findRelation(AO,GRVM);
+//            System.out.println("Cousinship: " + output2.getCousinship() + " Removal: " + output2.getRemoval());
+//            System.out.println("------------------------");
+//            output3 = familyTree.findRelation(ADM,XXXYY);
+//            System.out.println("Cousinship: " + output3.getCousinship() + " Removal: " + output3.getRemoval());
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//    }
 }
 

@@ -4,9 +4,17 @@ public class BiologicalRelation
 {
     int degreeOfCousinship;
     int levelOfRemoval;
+//Constructors
+    public int getCousinship()
+    {
+        return degreeOfCousinship;
+    }
 
-//    public List<Integer> getter() {
-//        return 2,3;
-//    }
+    public int getRemoval()
+    {
+        return levelOfRemoval;
+    }
+
+
 }
 

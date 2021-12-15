@@ -70,14 +70,27 @@ Genealogy familyTree = new Genealogy();
 
 //Record Notes
 Genealogy familyTree = new Genealogy();
-        PersonIdentity person1 = new PersonIdentity(1,"Daniel");
-        PersonIdentity person2 = new PersonIdentity(1,"Subash");
+        PersonIdentity person1 = new PersonIdentity(1,"ADM");
+        PersonIdentity person2 = new PersonIdentity(2,"Invalid Person");
         try {
-            boolean check1 = familyTree.recordNote(person1,"Valid Note");
+//            boolean check2 = familyTree.recordReference(person2,"Reference 1");
+//            System.out.println(" Exception Check: " + check2);
+
+            boolean check1 = familyTree.recordNote(person1,"Valid Note 1");
             System.out.println(" True Check: " + check1);
-            boolean check = familyTree.recordNote(person1,"");
-            System.out.println("False Check: " + check);
-            familyTree.recordNote(person2,"Invalid person");
+
+            boolean check2 = familyTree.recordReference(person1,"Reference 1");
+            System.out.println(" True Check: " + check1);
+
+            boolean check3 = familyTree.recordNote(person1,"Note 2");
+            System.out.println("True Check: " + check3);
+
+            boolean check4 = familyTree.recordNote(person1,"Note 3");
+            System.out.println("True Check: " + check4);
+
+            boolean check5 = familyTree.recordReference(person1,"Reference 2");
+            System.out.println(" True Check: " + check5);
+
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         } catch (SQLException e) {
@@ -351,3 +364,48 @@ Genealogy familyTree = new Genealogy();
             e.printStackTrace();
         }
 //Tags
+
+
+
+BiologicalRelation output = new BiologicalRelation();
+
+        Map<Integer,Integer> ans = new HashMap<>();
+
+        try {
+//                ans = familyTree.nearestAncestor(person1);
+//                for(var entryset : ans.entrySet())
+//                {
+//                    System.out.println(entryset.getKey() + "  " + entryset.getValue());
+//                }
+            output = familyTree.findRelation(person1,person2);
+            System.out.println("Cousinship: " + output.getCousinship() + " Removal: " + output.getRemoval());
+
+
+
+
+             try {
+                        Set<PersonIdentity> output = new HashSet<>();
+                        Set<PersonIdentity> output2 = new HashSet<>();
+                        Set<PersonIdentity> output3 = new HashSet<>();
+                        output = familyTree.descendents(XXX,3);
+                        output2 = familyTree.descendents(AOYXX,2);
+                        output3 = familyTree.descendents(XXXY,2);
+                        for(PersonIdentity p : output)
+                        {
+                            System.out.println(p.getId() + "  " + p.getName());
+                        }
+                        System.out.println("------------------------");
+                        for(PersonIdentity p : output2)
+                        {
+                            System.out.println(p.getId() + "  " + p.getName());
+                        }
+                        System.out.println("------------------------");
+                        for(PersonIdentity p : output3)
+                        {
+                            System.out.println(p.getId() + "  " + p.getName());
+                        }
+                        //output = familyTree.ancestores();
+
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
